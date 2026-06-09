@@ -1,0 +1,23 @@
+{
+  "MLP": {
+    "hidden_dims": [
+      128,
+      128,
+      128,
+      128
+    ],
+    "dropout": 0.1197986916059136
+  },
+  "CNN1D": {
+    "n_filters": 128,
+    "kernel_size": 5,
+    "fc_dim": 128,
+    "dropout": 0.12533490114698498
+  },
+  "FT_Transformer": {
+    "d_model": 128,
+    "n_layers": 4,
+    "n_heads": 2,
+    "dropout": 0.1332361215137497
+  }
+}

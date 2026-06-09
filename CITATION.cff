@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this software or dataset, please cite this repository."
+title: "Physics-informed machine learning for nanofiber diameter prediction in solution blow spinning"
+abstract: >-
+  Dataset, modelling pipeline, and trained models for predicting solution-blow-spun
+  polymer nanofiber diameter from physics-informed descriptors, benchmarking eight
+  classical and four deep-learning models under a three-level validation protocol
+  with post-hoc calibration for cross-laboratory transfer.
+authors:
+  - name: "The Authors"
+version: "1.0.0"
+date-released: "2026-06-09"
+license: MIT
+keywords:
+  - solution blow spinning
+  - nanofibers
+  - fiber diameter prediction
+  - machine learning
+  - deep learning
+  - physics-informed features
