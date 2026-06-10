@@ -1,0 +1,102 @@
+{
+ "seed": 42,
+ "holdout_papers": [
+  "Liu2018",
+  "Mogharbel2023",
+  "Rabello2025",
+  "Ramos2022",
+  "Pakolpakcil2024",
+  "Kuk2016",
+  "Alvarenga2024",
+  "Ergun2021",
+  "Czarnecka2021",
+  "GonzalezBenito2024"
+ ],
+ "cv_rows": 341,
+ "cv_papers": 47,
+ "cv_polymers": [
+  "CA",
+  "Gelatin",
+  "Gelatin (HMWFG)",
+  "PA6",
+  "PA66",
+  "PAN",
+  "PBAT",
+  "PBS",
+  "PCL",
+  "PDLLA",
+  "PEO",
+  "PLA",
+  "PLLA",
+  "PMMA",
+  "PS",
+  "PSf",
+  "PU",
+  "PVA",
+  "PVB",
+  "PVDF",
+  "PVP",
+  "RSF",
+  "THV",
+  "UHMWPE",
+  "Zein"
+ ],
+ "ho_rows": 67,
+ "ho_papers": 10,
+ "ho_polymers": [
+  "Gelatin (FSG)",
+  "PA6",
+  "PAN",
+  "PBS",
+  "PC",
+  "PCL",
+  "PHBV",
+  "PLA",
+  "PU",
+  "TPU"
+ ],
+ "unseen_polymers": [
+  "Gelatin (FSG)",
+  "PC",
+  "PHBV",
+  "TPU"
+ ],
+ "shared_polymers": [
+  "PA6",
+  "PAN",
+  "PBS",
+  "PCL",
+  "PLA",
+  "PU"
+ ],
+ "scaler_mean": [
+  12.104604105571848,
+  1.2076810583005335,
+  13.13291039438962,
+  29.57361730205279,
+  80.40288856304986,
+  2.6061240469208213,
+  12.766950146627565,
+  26.117888563049856
+ ],
+ "scaler_std": [
+  6.5643455475699195,
+  1.1057222906478137,
+  11.530811758138213,
+  10.458027564227326,
+  25.542600383462588,
+  1.3706115868695412,
+  19.418033628423405,
+  15.930908455646398
+ ],
+ "feature_names": [
+  "Polymer_conc_wt",
+  "intrinsic_viscosity_dLg",
+  "c_over_cstar",
+  "Solvent_ST_mNm",
+  "Solvent_BP_C",
+  "Air_pressure_bar_std",
+  "Feed_rate_mLh_std",
+  "Working_distance_cm"
+ ]
+}
