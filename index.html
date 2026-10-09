@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpinLab — SBS Fiber Design</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+:root{--bg:#f8f7f4;--surface:#fff;--surface2:#f1f0ec;--surface3:#e8e6e1;--border:#d4d1c9;--text:#1a1a1a;--text2:#4a4a4a;--text3:#7a7a7a;--text4:#9a9a9a;--accent:#1a4d8f;--accent2:#2563a8;--accent-light:#e8f0fa;--green:#1a7a4a;--green-light:#e6f4ed;--red:#9a2020;--red-light:#fae8e8;--yellow:#8a6d1a;--yellow-light:#faf4e8;--cal:#4a7a5a;--cal-light:#e8f2ec}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
+.app{max-width:1100px;margin:0 auto;padding:32px 24px 80px}
+.header{text-align:center;padding:40px 0 32px;border-bottom:1px solid var(--border)}
+.header h1{font-family:'Source Serif 4',Georgia,serif;font-size:26px;font-weight:700;letter-spacing:-.3px}
+.header .aff{font-size:13px;color:var(--text3);margin-top:6px}
+.header .desc{font-size:14px;color:var(--text2);margin-top:12px;max-width:680px;margin-left:auto;margin-right:auto;line-height:1.7}
+.steps{display:flex;gap:0;margin:28px 0;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.stp{flex:1;text-align:center;position:relative}
+.stp .sn{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;border:2px solid var(--border);color:var(--text4);background:var(--surface);margin-bottom:6px}
+.stp.done .sn{background:var(--accent);border-color:var(--accent);color:#fff}
+.stp.active .sn{border-color:var(--accent);color:var(--accent)}
+.stp .sl{font-size:11px;color:var(--text4);display:block}.stp.done .sl,.stp.active .sl{color:var(--text2)}
+.stp::after{content:'';position:absolute;top:14px;left:60%;width:80%;height:1px;background:var(--border)}.stp:last-child::after{display:none}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:24px;margin-bottom:20px}
+.card h2{font-family:'Source Serif 4',Georgia,serif;font-size:17px;font-weight:600;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--surface3)}
+.card h3{font-size:13px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin:20px 0 10px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:768px){.row{grid-template-columns:1fr}}
+.field{margin-bottom:14px}
+.field label{display:flex;justify-content:space-between;font-size:13px;color:var(--text2);margin-bottom:4px;font-weight:500}
+.field label .val{font-family:'IBM Plex Mono',monospace;color:var(--accent);font-size:12px}
+.field select,.field input[type="number"]{width:100%;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px}
+.field select:focus,.field input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-light)}
+.field input[type="range"]{width:100%;height:4px;-webkit-appearance:none;appearance:none;background:var(--surface3);border-radius:2px;outline:none;margin-top:6px}
+.field input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:var(--accent);border-radius:50%;cursor:pointer}
+.range-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text4);margin-top:2px;font-family:'IBM Plex Mono',monospace}
+.computed{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:12px;margin:12px 0}
+.computed .cr{display:flex;justify-content:space-between;padding:3px 0;font-size:13px}
+.computed .cl{color:var(--text3)}.computed .cv{font-family:'IBM Plex Mono',monospace;color:var(--accent);font-weight:500}
+.btn{padding:10px 20px;border:none;border-radius:3px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-p{background:var(--accent);color:#fff;width:100%}.btn-p:hover{background:var(--accent2)}
+.btn-p:disabled{background:var(--surface3);color:var(--text4);cursor:not-allowed}
+.btn-s{background:var(--surface);border:1px solid var(--border);color:var(--text2);width:auto}.btn-s:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.notice{padding:10px 14px;border-radius:3px;margin:10px 0;font-size:12px;line-height:1.5}
+.n-info{background:var(--accent-light);border:1px solid #c4d8f0;color:var(--accent)}
+.n-ok{background:var(--green-light);border:1px solid #b8dcc8;color:var(--green)}
+.n-warn{background:var(--yellow-light);border:1px solid #e0d4a8;color:var(--yellow)}
+.n-err{background:var(--red-light);border:1px solid #e0b8b8;color:var(--red)}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;margin:10px 0}
+.tbl th{text-align:left;padding:8px;background:var(--surface2);color:var(--text3);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.3px;border-bottom:2px solid var(--border)}
+.tbl td{padding:8px;border-bottom:1px solid var(--surface3);color:var(--text2)}.tbl tr:hover td{background:var(--surface2)}
+.edit-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.edit-tbl th{padding:6px 8px;background:var(--surface2);color:var(--text3);font-size:11px;text-transform:uppercase;letter-spacing:.3px;border-bottom:2px solid var(--border);text-align:left}
+.edit-tbl td{padding:2px}
+.edit-tbl input{width:100%;padding:7px 8px;border:1px solid var(--surface3);border-radius:2px;font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:center;background:var(--surface)}
+.edit-tbl input:focus{outline:none;border-color:var(--accent);background:var(--accent-light)}
+.edit-tbl .row-num{width:30px;text-align:center;color:var(--text4);font-size:11px}
+.upload-zone{border:2px dashed var(--border);border-radius:4px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface);margin-top:12px}
+.upload-zone:hover{border-color:var(--accent);background:var(--accent-light)}
+.upload-zone input{display:none}
+.mixer-row{display:grid;grid-template-columns:1fr 70px 32px;gap:6px;align-items:center;margin-bottom:6px}
+.mixer-row select,.mixer-row input{padding:6px 8px;font-size:12px;border:1px solid var(--border);border-radius:3px;font-family:'IBM Plex Sans',sans-serif;background:var(--surface)}
+.mrow{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:3px;margin:3px 0;font-size:13px;cursor:pointer}
+.mrow:hover{background:var(--surface2)}.mrow.best{background:var(--green-light);border:1px solid #b8dcc8}
+.mrow.selected-model{background:var(--accent-light);border:1px solid #c4d8f0}
+.mrow.unavail{opacity:.45;cursor:not-allowed}
+.result-box{background:var(--surface);border:2px solid var(--accent);border-radius:4px;padding:24px;text-align:center;margin:16px 0}
+.result-box .rv{font-size:48px;font-weight:700;color:var(--accent);font-family:'IBM Plex Mono',monospace;margin:8px 0 4px}
+.result-box .ru{font-size:14px;color:var(--text3)}.result-box .rd{font-size:12px;color:var(--text3);margin-top:8px}
+/* Heatmap */
+.hmap-wrap{overflow-x:auto;margin-top:16px}
+.hmap-table{border-collapse:collapse;font-size:11px;font-family:'IBM Plex Mono',monospace}
+.hmap-table td,.hmap-table th{padding:8px 12px;text-align:center;border:1px solid var(--border)}
+.hmap-table th{background:var(--surface2);color:var(--text3);font-weight:600}
+.hmap-cell{min-width:70px;position:relative}
+.hmap-target{outline:3px solid var(--accent);outline-offset:-2px;font-weight:700}
+/* Model type badges */
+.badge{display:inline-block;font-size:10px;font-weight:600;padding:1px 5px;border-radius:2px;text-transform:uppercase;letter-spacing:.04em;margin-left:4px}
+.badge-ml{background:var(--accent-light);color:var(--accent)}
+.badge-dl{background:var(--red-light);color:var(--red)}
+.badge-star{background:var(--yellow-light);color:var(--yellow)}
+.footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--border);font-size:11px;color:var(--text4);line-height:1.6}
+.footer summary{font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;margin-bottom:8px}
+.hidden{display:none}.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}.mt-20{margin-top:20px}
+code{font-family:'IBM Plex Mono',monospace;font-size:11px;background:var(--surface2);padding:1px 5px;border-radius:2px}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="header">
+  <h1 style="font-size:32px;letter-spacing:-.5px">SpinLab</h1>
+  <div style="font-size:14px;color:var(--text3);margin-top:4px;font-style:italic">Machine-Learning-Assisted Solution Blow Spinning Design</div>
+  <div class="aff" id="hdr-aff">Loading…</div>
+</div>
+
+<div class="steps">
+  <div class="stp active" id="s1"><span class="sn">1</span><span class="sl">System &amp; Reference</span></div>
+  <div class="stp" id="s2"><span class="sn">2</span><span class="sl">Calibration</span></div>
+  <div class="stp" id="s3"><span class="sn">3</span><span class="sl">Target Design</span></div>
+</div>
+
+<!-- ═══ STEP 1: System + Reference ═══ -->
+<div id="step1">
+<div class="row">
+<div class="card">
+  <h2>Define Your Polymer System</h2>
+  <div class="field">
+    <label>Polymer</label>
+    <select id="p-poly" onchange="polyChg()">
+      <option value="">Loading polymers…</option>
+    </select>
+  </div>
+  <div class="field" id="f-mw">
+    <label>Molecular Weight <span class="val"><span id="v-mw">400</span> kDa</span></label>
+    <input type="range" id="i-mw" min="10" max="3000" value="400" step="10" oninput="document.getElementById('v-mw').textContent=this.value;upd()">
+    <div class="range-labels"><span>10</span><span>3000 kDa</span></div>
+  </div>
+  <div class="field">
+    <label>Solvent System</label>
+    <select id="p-sol" onchange="solChg()">
+      <option value="">Loading solvents…</option>
+    </select>
+  </div>
+  <div class="hidden" id="mix-p">
+    <div id="mix-r"></div>
+    <button class="btn btn-s btn-sm" onclick="addMix()">+ Add component</button>
+    <p style="font-size:11px;color:var(--text4);margin-top:6px">ST<sub>mix</sub> = Σ v<sub>i</sub> × ST<sub>i</sub> &nbsp;|&nbsp; BP<sub>mix</sub> = Σ v<sub>i</sub> × BP<sub>i</sub></p>
+  </div>
+  <div class="computed">
+    <div class="cr"><span class="cl">[η] (intrinsic viscosity)</span><span class="cv" id="o-eta">—</span></div>
+    <div class="cr"><span class="cl">c* (overlap concentration)</span><span class="cv" id="o-cs">—</span></div>
+    <div class="cr"><span class="cl">Surface tension</span><span class="cv" id="o-st">—</span></div>
+    <div class="cr"><span class="cl">Boiling point</span><span class="cv" id="o-bp">—</span></div>
+  </div>
+  <button class="btn btn-p mt-8" onclick="toStep(2)">Continue to Calibration →</button>
+</div>
+<div>
+  <div class="card">
+    <h2>Mark–Houwink Calculator</h2>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:10px">[η] = K × M<sup>a</sup> &nbsp;(dL/g, M in g/mol)</p>
+    <div class="field">
+      <label>Polymer system</label>
+      <select id="mh-s" onchange="mhSel()">
+        <option value="">Select to auto-fill K and a…</option>
+      </select>
+    </div>
+    <div class="row" style="gap:10px">
+      <div class="field"><label>K</label><input type="number" id="mh-K" step="0.00001" value="0.000125"></div>
+      <div class="field"><label>a</label><input type="number" id="mh-a" step="0.001" value="0.78"></div>
+    </div>
+    <div class="field"><label>Mv (kDa)</label><input type="number" id="mh-mw" step="1" value="400"></div>
+    <button class="btn btn-p" onclick="doMH()">Calculate</button>
+    <div class="computed mt-8">
+      <div class="cr"><span class="cl">[η]</span><span class="cv" id="mh-eo">—</span></div>
+      <div class="cr"><span class="cl">1/[η] (c* also depends on solvent density)</span><span class="cv" id="mh-co">—</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Solvent Quick Reference</h2>
+    <table class="tbl" id="solv-ref-tbl">
+      <thead><tr><th>Solvent</th><th>ST (mN/m)</th><th>BP (°C)</th></tr></thead>
+      <tbody id="solv-ref-body"></tbody>
+    </table>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- ═══ STEP 2: Calibration ═══ -->
+<div id="step2" class="hidden">
+<div class="row">
+<div class="card">
+  <h2>Enter Your Experimental Data</h2>
+  <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Enter your SBS results below. Each row is one condition with its measured mean fiber diameter. Only include bead-free, uniform fiber samples.</p>
+  <div style="overflow-x:auto">
+  <table class="edit-tbl" id="data-tbl">
+    <thead><tr><th style="width:30px">#</th><th>Conc (wt%)</th><th>Pressure (bar)</th><th>Feed Rate (mL/h)</th><th>WD (cm)</th><th>Diameter (nm)</th><th style="width:30px"></th></tr></thead>
+    <tbody id="data-body"></tbody>
+  </table>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button class="btn btn-s btn-sm" onclick="addRow()">+ Add Row</button>
+    <button class="btn btn-s btn-sm" onclick="clearRows()">Clear All</button>
+  </div>
+  <div class="upload-zone mt-16" onclick="document.getElementById('csv-f').click()"
+       ondragover="event.preventDefault();this.style.borderColor='var(--accent)'"
+       ondragleave="this.style.borderColor=''"
+       ondrop="event.preventDefault();this.style.borderColor='';loadCSV(event.dataTransfer.files[0])">
+    <input type="file" id="csv-f" accept=".csv" onchange="loadCSV(this.files[0])">
+    <div style="font-size:12px;color:var(--text3)">Or drop a CSV here (columns: concentration, pressure, feed_rate, working_distance, measured_diameter)</div>
+  </div>
+  <div id="data-msg" class="mt-8"></div>
+  <button class="btn btn-p mt-16" id="cal-btn" onclick="doCal()">Calibrate All Models</button>
+  <div class="field mt-16">
+    <label>Or continue without calibration (zero-shot)</label>
+    <div style="display:flex;gap:8px">
+      <select id="zs-model" style="flex:1"></select>
+      <button class="btn btn-s" onclick="skipCal()">Zero-shot →</button>
+    </div>
+  </div>
+</div>
+<div>
+  <div class="card">
+    <h2>System Summary</h2>
+    <div class="computed">
+      <div class="cr"><span class="cl">Polymer</span><span class="cv" id="su-po">—</span></div>
+      <div class="cr"><span class="cl">Mv</span><span class="cv" id="su-mv">—</span></div>
+      <div class="cr"><span class="cl">[η]</span><span class="cv" id="su-et">—</span></div>
+      <div class="cr"><span class="cl">c*</span><span class="cv" id="su-cs">—</span></div>
+      <div class="cr"><span class="cl">Solvent</span><span class="cv" id="su-sol">—</span></div>
+      <div class="cr"><span class="cl">ST</span><span class="cv" id="su-st">—</span></div>
+      <div class="cr"><span class="cl">BP</span><span class="cv" id="su-bp">—</span></div>
+    </div>
+    <button class="btn btn-s mt-8" onclick="toStep(1)">← Change system</button>
+  </div>
+  <div class="card hidden" id="cal-card">
+    <h2>Calibration Results</h2>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:10px">Click a model to use it for Step 3. <span class="badge badge-star">★ ZS</span> = best zero-shot &nbsp;<span class="badge" style="background:var(--cal-light);color:var(--cal)">✦ CAL</span> = best calibrated</p>
+    <div id="cal-out"></div>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- ═══ STEP 3: Target Design ═══ -->
+<div id="step3" class="hidden">
+<div class="card">
+  <h2>Design for Target Fiber Diameter</h2>
+  <p style="font-size:13px;color:var(--text2)">Set your desired fiber diameter and parameter ranges. The heatmap shows predicted diameter at each concentration × pressure combination.</p>
+  <div style="font-size:12px;color:var(--text3);margin-top:6px" id="s3-model-info">Model: —</div>
+</div>
+<div class="row">
+<div class="card">
+  <div class="field">
+    <label>Target Diameter <span class="val"><span id="v-tgt">500</span> nm</span></label>
+    <input type="range" id="i-tgt" min="50" max="3000" value="500" step="10" oninput="document.getElementById('v-tgt').textContent=this.value">
+    <div class="range-labels"><span>50</span><span>3000 nm</span></div>
+  </div>
+
+  <h3>Concentration Range (wt%)</h3>
+  <div class="field">
+    <label>Min <span class="val"><span id="v-clo">3</span> wt%</span></label>
+    <input type="range" id="conc-lo" min="0.8" max="30" value="3" step="0.5" oninput="clampRange('conc')">
+    <div class="range-labels"><span>0.8</span><span>30 wt%</span></div>
+  </div>
+  <div class="field">
+    <label>Max <span class="val"><span id="v-chi">15</span> wt%</span></label>
+    <input type="range" id="conc-hi" min="0.8" max="30" value="15" step="0.5" oninput="clampRange('conc')">
+    <div class="range-labels"><span>0.8</span><span>30 wt%</span></div>
+  </div>
+
+  <h3>Pressure Range (bar)</h3>
+  <div class="field">
+    <label>Min <span class="val"><span id="v-plo">1</span> bar</span></label>
+    <input type="range" id="pres-lo" min="0.1" max="6.2" value="1.0" step="0.1" oninput="clampRange('pres')">
+    <div class="range-labels"><span>0.1</span><span>6.2 bar</span></div>
+  </div>
+  <div class="field">
+    <label>Max <span class="val"><span id="v-phi">4</span> bar</span></label>
+    <input type="range" id="pres-hi" min="0.1" max="6.2" value="4.0" step="0.1" oninput="clampRange('pres')">
+    <div class="range-labels"><span>0.1</span><span>6.2 bar</span></div>
+  </div>
+
+  <h3>Fixed Parameters</h3>
+  <div class="field">
+    <label>Feed Rate <span class="val"><span id="v-feed">0.6</span> mL/h</span></label>
+    <input type="range" id="fix-feed" min="0.1" max="80" value="0.6" step="0.1" oninput="document.getElementById('v-feed').textContent=this.value">
+    <div class="range-labels"><span>0.1</span><span>80 mL/h</span></div>
+  </div>
+  <div class="field">
+    <label>Working Distance <span class="val"><span id="v-wd">20</span> cm</span></label>
+    <input type="range" id="fix-wd" min="5" max="60" value="20" step="1" oninput="document.getElementById('v-wd').textContent=this.value">
+    <div class="range-labels"><span>5</span><span>60 cm</span></div>
+  </div>
+  <button class="btn btn-p mt-16" id="hmap-btn" onclick="genHeatmap()">Generate Heatmap</button>
+  <button class="btn btn-s mt-8" onclick="toStep(2)" style="width:100%;margin-top:8px">← Back to Calibration</button>
+</div>
+<div>
+  <div class="card" id="hmap-card">
+    <h2>Predicted Diameter Heatmap</h2>
+    <div id="hmap-out" style="color:var(--text3);font-size:13px">Configure and click Generate.</div>
+    <div class="hidden mt-12" id="rec-box">
+      <h3>Recommended Conditions</h3>
+      <div id="rec-out" class="computed"></div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- Footer -->
+<details class="footer mt-20">
+  <summary>Methodology &amp; Disclaimer</summary>
+  <div id="footer-txt">Eight machine-learning models trained on 344 literature data points from 47 SBS papers. Inputs: polymer concentration, intrinsic viscosity, c/c*, solvent surface tension, solvent boiling point, air pressure, feed rate, and working distance. Target: ln(fiber diameter). Intrinsic viscosity is computed from Mark–Houwink constants, c* = 1/([η]·ρ<sub>solvent</sub>), and the surface tension, boiling point, and density of mixtures are weighted by volume fraction. Zero-shot mode uses the pre-trained models directly. Calibration mode applies the frozen models to your conditions and fits an affine correction (ln d<sub>corrected</sub> = a · ln d<sub>predicted</sub> + b) to your measured diameters; the models are not retrained and your data are not combined with the literature data. A warning is shown when inputs lie outside the domain of the training data. The models predict diameter for conditions that form fibers and do not predict whether fibers will form. Predictions are estimates for pre-screening and ranking of conditions; confirm diameters experimentally.</div>
+</details>
+
+</div><!-- /app -->
+
+<script>
+// ── Global state ───────────────────────────────────────────────────────
+let CFG       = null;    // /api/config response
+let POLY_KA   = {};      // {name: {K, a}}  fetched lazily
+let SOLV_MAP  = {};      // {system: {ST, BP}}
+let selModel  = null;    // canonical key of selected model
+let calRows   = 0;
+let calPts    = [];      // collected calibration points
+
+const STATE = {
+  polymer: '', Mv: 400000, solvent: '',
+  eta: null, cstar: null, ST: null, BP: null, rho: null,
+};
+
+// ── Boot ───────────────────────────────────────────────────────────────
+function findClosestSolvent(st, bp) {
+  if (!CFG || !CFG.solvents) return null;
+  let best = null, bestDist = Infinity;
+  Object.entries(CFG.solvents).forEach(([name, {ST, BP}]) => {
+    const dist = Math.abs(ST - st) + Math.abs(BP - bp) * 0.1;
+    if (dist < bestDist) { bestDist = dist; best = name; }
+  });
+  return best;
+}
+
+async function init() {
+  try {
+    const r = await fetch('/api/config');
+    CFG = await r.json();
+
+    // Update header
+    const avail = CFG.models.filter(m => m.available).length;
+    document.getElementById('hdr-aff').textContent =
+      `${CFG.models.length} ML models · trained on 344 data points from 47 papers`;
+
+    // Polymer dropdown
+    const ps = document.getElementById('p-poly');
+    ps.innerHTML = '<option value="">Select polymer…</option>';
+    CFG.polymers.forEach(p => {
+      ps.innerHTML += `<option value="${p}">${p}</option>`;
+    });
+
+    // Solvent dropdown (config now returns {name: {ST, BP}})
+    const ss = document.getElementById('p-sol');
+    ss.innerHTML = '<option value="">Select solvent system…</option>';
+    // Only pure solvents (no "/" = no pre-mixed) sorted alphabetically
+    const pureSolvents = Object.keys(CFG.solvents)
+      .filter(s => !s.includes('/'))
+      .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+    pureSolvents.forEach(s => {
+      // Clean display: remove underscores, capitalize first letters
+      const display = s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      ss.innerHTML += `<option value="${s}">${display}</option>`;
+    });
+    ss.innerHTML += '<option value="mix">Mixture… (build below)</option>';
+    
+    // Mixture builder uses all solvents including mixtures
+    window.ALL_SOLVENTS = CFG.solvents;
+
+    // Build solvent map from config
+    // (We get ST/BP from the first predict call; for the reference table use partial data)
+    // Mark-Houwink selector
+    const mhs = document.getElementById('mh-s');
+    mhs.innerHTML = '<option value="">Select to auto-fill K and a…</option>';
+    CFG.polymers.forEach(p => {
+      mhs.innerHTML += `<option value="${p}">${p}</option>`;
+    });
+
+    // Populate solvent reference table with a curated subset
+    const refSolvents = [
+      ['chloroform',27.14,61.2],['DCM',27.84,39.6],['DMF',36.76,153.0],
+      ['acetone',23.46,56.1],['water',72.0,100.0],['ethanol',22.39,78.4],
+      ['methanol',22.5,64.7],['THF',26.4,66.0],['acetic_acid',27.1,118.1],
+      ['toluene',28.52,110.6],['formic_acid',37.67,100.8],
+    ];
+    const tbody = document.getElementById('solv-ref-body');
+    refSolvents.forEach(([n,st,bp]) => {
+      tbody.innerHTML += `<tr><td>${n}</td><td>${st}</td><td>${bp}</td></tr>`;
+    });
+
+    // Add default 3 calibration rows
+    addRow(); addRow(); addRow();
+
+    const zsSel = document.getElementById('zs-model');
+    CFG.models.forEach(m => { zsSel.innerHTML += `<option value="${m.key}">${m.label}</option>`; });
+
+    // Default model selection: best zero-shot
+    const zs = CFG.models.find(m => m.rec_zeroshot && m.available);
+    if (zs) selModel = zs.key;
+
+  } catch(e) {
+    document.getElementById('hdr-aff').textContent = 'Error loading config — is the space running?';
+    console.error(e);
+  }
+}
+
+// ── Physics ────────────────────────────────────────────────────────────
+async function polyChg() {
+  const name = document.getElementById('p-poly').value;
+  STATE.polymer = name;
+  if (!name) return;
+  // Fetch K, a if not cached
+  if (!POLY_KA[name]) {
+    try {
+      const r = await fetch('/api/polymer/' + encodeURIComponent(name));
+      POLY_KA[name] = await r.json();
+    } catch(e) {}
+  }
+  upd();
+}
+
+function solChg() {
+  const val = document.getElementById('p-sol').value;
+  const mixDiv = document.getElementById('mix-p');
+  const isMix = val === 'mix';
+  mixDiv.classList.toggle('hidden', !isMix);
+  // Auto-add 2 rows when first switching to mix
+  if (isMix && document.getElementById('mix-r').children.length === 0) {
+    addMix(); addMix();
+  }
+  upd();
+}
+
+function addMix() {
+  if (!CFG) return;
+  const d = document.createElement('div');
+  d.className = 'mixer-row';
+  const solPool = window.ALL_SOLVENTS || CFG.solvents;
+  const opts = Object.keys(solPool)
+    .filter(k => !k.includes('/'))  // pure components only in mixer
+    .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
+    .map(k => {
+      const disp = k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      return `<option value="${k}">${disp}</option>`;
+    }).join('');
+  d.innerHTML = `<select onchange="upd()">${opts}</select>
+    <input type="number" value="50" min="0" max="100" step="5" oninput="upd()" title="Volume %">
+    <button class="btn btn-s btn-sm" onclick="this.parentElement.remove();upd()">×</button>`;
+  document.getElementById('mix-r').appendChild(d);
+  upd();
+}
+
+function gSolv() {
+  const sel = document.getElementById('p-sol').value;
+  if (sel === 'mix') {
+    // Weighted average of components
+    const rows = document.querySelectorAll('#mix-r .mixer-row');
+    let totalVol = 0, stSum = 0, bpSum = 0, rhoSum = 0, ok = true;
+    rows.forEach(row => {
+      const solKey = row.querySelector('select').value;
+      const vol    = parseFloat(row.querySelector('input').value) || 0;
+      const s = CFG.solvents[solKey];
+      if (!s) { ok = false; return; }
+      totalVol += vol; stSum += s.ST * vol; bpSum += s.BP * vol; rhoSum += s.rho * vol;
+    });
+    if (!ok || totalVol === 0) return { ok: false };
+    return { ok: true, st: stSum / totalVol, bp: bpSum / totalVol, rho: rhoSum / totalVol, key: null };
+  }
+  // Pure solvent
+  if (sel && CFG && CFG.solvents[sel]) {
+    return { ok: true, st: CFG.solvents[sel].ST, bp: CFG.solvents[sel].BP, rho: CFG.solvents[sel].rho, key: sel };
+  }
+  return { ok: false };
+}
+
+function upd() {
+  const name   = document.getElementById('p-poly').value;
+  const Mv_kDa = parseFloat(document.getElementById('i-mw').value);
+  const Mv     = Mv_kDa * 1000;
+  STATE.Mv = Mv;
+
+  // Solvent physics
+  const sv = gSolv();
+
+  // Polymer physics: [eta] = K * M^a ; c* = 1 / ([eta] * rho_solvent)
+  const p = POLY_KA[name];
+  if (p && Mv > 0) {
+    const eta   = p.K * Math.pow(Mv, p.a);
+    STATE.eta   = eta;
+    document.getElementById('o-eta').textContent = eta.toFixed(4) + ' dL/g';
+    if (sv.ok) {
+      STATE.cstar = 1.0 / (eta * sv.rho);
+      document.getElementById('o-cs').textContent = STATE.cstar.toFixed(4) + ' wt%';
+    } else {
+      STATE.cstar = null;
+      document.getElementById('o-cs').textContent = '—';
+    }
+  } else {
+    STATE.eta = null; STATE.cstar = null;
+    document.getElementById('o-eta').textContent = '—';
+    document.getElementById('o-cs').textContent  = '—';
+  }
+
+  if (sv.ok) {
+    STATE.ST = sv.st; STATE.BP = sv.bp; STATE.rho = sv.rho;
+    STATE.solvent = sv.key || '__mix__';
+    document.getElementById('o-st').textContent = sv.st.toFixed(1) + ' mN/m';
+    document.getElementById('o-bp').textContent = sv.bp.toFixed(1) + ' °C';
+  } else {
+    STATE.ST = null; STATE.BP = null;
+    document.getElementById('o-st').textContent = '—';
+    document.getElementById('o-bp').textContent = '—';
+  }
+}
+
+// ── Mark-Houwink calculator ────────────────────────────────────────────
+async function mhSel() {
+  const name = document.getElementById('mh-s').value;
+  if (!name) return;
+  if (!POLY_KA[name]) {
+    try {
+      const r = await fetch('/api/polymer/' + encodeURIComponent(name));
+      POLY_KA[name] = await r.json();
+    } catch(e) { return; }
+  }
+  const p = POLY_KA[name];
+  document.getElementById('mh-K').value = p.K;
+  document.getElementById('mh-a').value = p.a;
+}
+
+function doMH() {
+  const K  = parseFloat(document.getElementById('mh-K').value);
+  const a  = parseFloat(document.getElementById('mh-a').value);
+  const Mv = parseFloat(document.getElementById('mh-mw').value) * 1000;
+  if (!K || !a || !Mv) return;
+  const eta  = K * Math.pow(Mv, a);
+  const cstar = 1.0 / eta;
+  document.getElementById('mh-eo').textContent = eta.toFixed(4) + ' dL/g';
+  document.getElementById('mh-co').textContent = cstar.toFixed(4) + ' g/dL';
+}
+
+// ── Step navigation ────────────────────────────────────────────────────
+function toStep(n) {
+  ['step1','step2','step3'].forEach((id,i) => {
+    document.getElementById(id).classList.toggle('hidden', i+1 !== n);
+  });
+  for(let i=1; i<=3; i++) {
+    const el = document.getElementById('s'+i);
+    el.classList.remove('active','done');
+    if(i < n)  el.classList.add('done');
+    if(i === n) el.classList.add('active');
+  }
+  if(n === 2) fillSummary();
+  if(n === 3) {
+    if (selModel && window.CAL_RESULT) {
+      const mr = window.CAL_RESULT.model_results[selModel];
+      document.getElementById('s3-model-info').textContent =
+        'Model: ' + (mr?.label || selModel) + ' (calibrated with ' + calPts.length + ' points; leave-one-out MAPE ' + (mr?.mape ?? '?') + '%)';
+    } else if (selModel && !window.CAL_API_ROWS) {
+      document.getElementById('s3-model-info').textContent = 'Model: ' + selModel + ' (zero-shot, no calibration)';
+    } else if(!selModel) {
+      alert('Please calibrate or choose a zero-shot model in Step 2 first.'); toStep(2); return;
+    }
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function fillSummary() {
+  const Mv_kDa = parseFloat(document.getElementById('i-mw').value);
+  document.getElementById('su-po').textContent  = STATE.polymer || '—';
+  document.getElementById('su-mv').textContent  = Mv_kDa + ' kDa';
+  document.getElementById('su-et').textContent  = STATE.eta ? STATE.eta.toFixed(4)+' dL/g' : '—';
+  document.getElementById('su-cs').textContent  = STATE.cstar ? STATE.cstar.toFixed(4)+' wt%' : '—';
+  const solDisplay = STATE.solvent === '__mix__' 
+    ? `Mixture (ST ${STATE.ST?.toFixed(1)}, BP ${STATE.BP?.toFixed(1)}°C)`
+    : (STATE.solvent || '—');
+  document.getElementById('su-sol').textContent = solDisplay;
+  document.getElementById('su-st').textContent  = STATE.ST ? STATE.ST+' mN/m' : '—';
+  document.getElementById('su-bp').textContent  = STATE.BP ? STATE.BP+' °C' : '—';
+}
+
+// ── Calibration table ──────────────────────────────────────────────────
+function addRow() {
+  calRows++;
+  const tbody = document.getElementById('data-body');
+  const tr = document.createElement('tr');
+  tr.id = 'dr-' + calRows;
+  tr.innerHTML = `
+    <td class="row-num">${calRows}</td>
+    <td><input type="number" placeholder="8" step="0.1" min="0.1" max="50"></td>
+    <td><input type="number" placeholder="2.0" step="0.1" min="0.1" max="20"></td>
+    <td><input type="number" placeholder="0.6" step="0.1" min="0.01" max="200"></td>
+    <td><input type="number" placeholder="20" step="1" min="1" max="200"></td>
+    <td><input type="number" placeholder="nm" step="1" min="1" max="100000"></td>
+    <td><button style="background:none;border:none;color:var(--text4);cursor:pointer;font-size:14px" onclick="this.closest('tr').remove()">×</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function clearRows() {
+  document.getElementById('data-body').innerHTML = '';
+  calRows = 0;
+}
+
+function loadCSV(file) {
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const lines = e.target.result.trim().split('\n');
+    clearRows();
+    // Skip header
+    const start = lines[0].toLowerCase().includes('conc') ? 1 : 0;
+    lines.slice(start).forEach(line => {
+      const cols = line.split(',').map(v => v.trim());
+      if(cols.length < 5) return;
+      addRow();
+      const row = document.querySelector('#dr-'+calRows);
+      const inputs = row.querySelectorAll('input[type=number]');
+      [0,1,2,3,4].forEach(i => { if(cols[i]) inputs[i].value = cols[i]; });
+    });
+    setMsg('data-msg', `Loaded ${calRows} rows from CSV`, 'n-ok');
+  };
+  reader.readAsText(file);
+}
+
+function setMsg(id, txt, cls) {
+  const el = document.getElementById(id);
+  el.innerHTML = `<div class="notice ${cls}">${txt}</div>`;
+}
+
+function collectRows() {
+  const rows = document.querySelectorAll('#data-body tr');
+  const pts = [];
+  rows.forEach(row => {
+    const inputs = row.querySelectorAll('input[type=number]');
+    const vals = Array.from(inputs).map(i => parseFloat(i.value));
+    if(vals.every(v => !isNaN(v) && v > 0)) {
+      pts.push({
+        concentration:    vals[0],
+        pressure:         vals[1],
+        feed_rate:        vals[2],
+        working_distance: vals[3],
+        measured_diameter:vals[4],
+      });
+    }
+  });
+  return pts;
+}
+
+// ── Calibration (Step 2) ───────────────────────────────────────────────
+async function doCal() {
+  if (!STATE.polymer || !STATE.Mv || !STATE.solvent) {
+    setMsg('data-msg','Complete Step 1 first (polymer, Mv, solvent).','n-err'); return;
+  }
+  calPts = collectRows();
+  if (calPts.length < 3) {
+    setMsg('data-msg','Need at least 3 complete rows for calibration. Currently have '+calPts.length+' valid rows.','n-err'); return;
+  }
+
+  const btn = document.getElementById('cal-btn');
+  btn.innerHTML = '<span class="spin"></span>Calibrating…';
+  btn.disabled = true;
+
+  // Compute 8 features + diameter for each calibration row
+  const sv = gSolv();
+  if (!sv.ok) { setMsg('data-msg','Select a valid solvent first.','n-err'); btn.disabled=false; btn.innerHTML='Calibrate All Models'; return; }
+  const p = POLY_KA[STATE.polymer];
+  const Mv = STATE.Mv;
+  const eta = p.K * Math.pow(Mv, p.a);
+  const cstar = 1.0 / (eta * sv.rho);
+  const apiRows = calPts.map(pt => [
+    pt.concentration, eta, pt.concentration / cstar,
+    sv.st, sv.bp, pt.pressure, pt.feed_rate, pt.working_distance,
+    pt.measured_diameter
+  ]);
+
+  try {
+    const r = await fetch('/api/calibrate', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ user_data: apiRows })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || d.error || r.statusText);
+
+    // Update physics from response
+    if (d.physics) { STATE.ST = d.physics.ST_mNm; STATE.BP = d.physics.BP_C; }
+
+    // Store for heatmap
+    window.CAL_RESULT = d;
+    window.CAL_API_ROWS = apiRows;
+    window.CAL_ETA = eta;
+    window.CAL_CSTAR = cstar;
+    window.CAL_ST = sv.st;
+    window.CAL_BP = sv.bp;
+
+    // Auto-select best model
+    selModel = d.best_model;
+
+    // Render calibration results
+    const calOut = document.getElementById('cal-out');
+    calOut.innerHTML = '';
+
+    calOut.innerHTML += `<div class="notice n-ok">Best model: <strong>${d.model_results[d.best_model].label}</strong> (LOO MAPE: ${d.best_mape}%)</div>`;
+    calOut.innerHTML += `<p style="font-size:12px;color:var(--text3);margin:10px 0">The ${d.n_models} models are not retrained. An affine correction of their predictions is fitted to your data. Leave-one-out error on your data points:</p>`;
+    if (d.domain && d.domain.n_outside > 0) {
+      calOut.innerHTML += `<div class="notice n-warn">${d.domain.n_outside} of ${d.n_user} conditions lie outside the domain of the training data. Predictions for them are extrapolations.</div>`;
+    }
+    if (d.model_results[d.best_model].slope < 0) {
+      calOut.innerHTML += `<div class="notice n-warn">The fitted slope of ${d.model_results[d.best_model].label} is negative (the correction reverses the model's ranking of your conditions). Add more calibration points or choose another model.</div>`;
+    }
+
+    // Sort by MAPE
+    const sorted = Object.entries(d.model_results).sort((a,b) => a[1].mape - b[1].mape);
+    sorted.forEach(([key, m]) => {
+      const isBest = key === d.best_model;
+      const div = document.createElement('div');
+      div.className = 'mrow' + (isBest ? ' best' : '');
+      div.style.cursor = 'pointer';
+      div.onclick = () => {
+        selModel = key;
+        document.querySelectorAll('.mrow').forEach(el => el.classList.remove('selected-model'));
+        div.classList.add('selected-model');
+      };
+      div.innerHTML = '<span>' + m.label +
+        ' <span class="badge badge-ml">ML</span>' +
+        (isBest ? ' <span class="badge" style="background:var(--green-light);color:var(--green)">BEST</span>' : '') +
+        '</span><span style="font-family:IBM Plex Mono,monospace;font-size:12px">' +
+        'zero-shot ' + m.zeroshot_mape + '% · calibrated (LOO) <strong>' + m.mape + '%</strong></span>';
+      calOut.appendChild(div);
+      if (isBest) div.classList.add('selected-model');
+    });
+
+    // Predicted vs Actual table for best model
+    const best = d.model_results[d.best_model];
+    let tbl = '<h3 style="margin-top:16px">Predicted vs. Actual (' + best.label + ')</h3>';
+    tbl += '<div style="max-height:250px;overflow-y:auto"><table class="tbl"><thead><tr><th>Condition</th><th>Actual</th><th>Predicted</th><th>Error</th></tr></thead><tbody>';
+    calPts.forEach((pt, i) => {
+      const err = best.errors[i];
+      const errColor = err < 20 ? 'var(--green)' : err < 35 ? 'var(--yellow)' : 'var(--red)';
+      tbl += '<tr><td>' + pt.concentration + '%, ' + pt.pressure + ' bar</td>' +
+             '<td>' + d.actuals[i] + '</td><td>' + best.loo_preds[i] + '</td>' +
+             '<td style="color:' + errColor + '">' + err.toFixed(1) + '%</td></tr>';
+    });
+    tbl += '</tbody></table></div>';
+    calOut.innerHTML += tbl;
+    calOut.innerHTML += '<button class="btn btn-p mt-16" onclick="toStep(3)">Continue to Target Design →</button>';
+
+    document.getElementById('cal-card').classList.remove('hidden');
+    fillSummary();
+    setMsg('data-msg', 'Calibration complete — ' + d.n_user + ' points, best model: ' + best.label + ' (' + d.best_mape + '% LOO MAPE)', 'n-ok');
+
+  } catch(e) {
+    setMsg('data-msg', 'Calibration error: ' + e.message, 'n-err');
+  } finally {
+    btn.innerHTML = 'Calibrate All Models';
+    btn.disabled = false;
+  }
+}
+
+let calSolventKey = null;
+
+function skipCal() {
+  if (!STATE.polymer || !STATE.eta || !STATE.cstar) {
+    setMsg('data-msg','Complete Step 1 first (polymer, Mv, solvent).','n-err'); return;
+  }
+  window.CAL_RESULT = null; window.CAL_API_ROWS = null;
+  window.CAL_ETA = STATE.eta; window.CAL_CSTAR = STATE.cstar; window.CAL_ST = STATE.ST; window.CAL_BP = STATE.BP;
+  selModel = document.getElementById('zs-model').value;
+  toStep(3);
+}
+
+function selectModel(key, label) {
+  selModel = key;
+  // Re-render by re-running doCal visual only (just update selected highlights)
+  document.querySelectorAll('.mrow').forEach(el => {
+    el.classList.remove('selected-model');
+  });
+  event.currentTarget.classList.add('selected-model');
+  document.getElementById('s3-model-info').textContent = 'Model: ' + label + ' (with calibration)';
+}
+
+// ── Heatmap (Step 3) ───────────────────────────────────────────────────
+function clampRange(prefix) {
+  const lo = document.getElementById(prefix + '-lo');
+  const hi = document.getElementById(prefix + '-hi');
+  const loVal = parseFloat(lo.value);
+  const hiVal = parseFloat(hi.value);
+  // If min exceeds max, push max up. If max goes below min, push min down.
+  if (loVal > hiVal) {
+    // Whichever was just moved — detect by checking which changed
+    // Simpler: always enforce max >= min by pushing the other
+    hi.value = loVal;
+  }
+  const dispMap = {conc: ['v-clo','v-chi'], pres: ['v-plo','v-phi']};
+  const [dLo, dHi] = dispMap[prefix];
+  document.getElementById(dLo).textContent = lo.value;
+  document.getElementById(dHi).textContent = hi.value;
+}
+
+async function genHeatmap() {
+  if (!selModel) { alert('Please calibrate or choose a zero-shot model in Step 2 first.'); return; }
+  if (!STATE.polymer || !STATE.Mv) { alert('Complete Step 1 first.'); return; }
+
+  let concLo = parseFloat(document.getElementById('conc-lo').value);
+  let concHi = parseFloat(document.getElementById('conc-hi').value);
+  let presLo = parseFloat(document.getElementById('pres-lo').value);
+  let presHi = parseFloat(document.getElementById('pres-hi').value);
+
+  // Auto-swap if min > max
+  if (concLo > concHi) { [concLo, concHi] = [concHi, concLo]; }
+  if (presLo > presHi) { [presLo, presHi] = [presHi, presLo]; }
+  // Prevent zero-width ranges
+  if (concLo === concHi) { concHi = concLo + 1; }
+  if (presLo === presHi) { presHi = presLo + 0.5; }
+  const feed   = parseFloat(document.getElementById('fix-feed').value);
+  const wd     = parseFloat(document.getElementById('fix-wd').value);
+  const target = parseFloat(document.getElementById('i-tgt').value);
+  const solKey = calSolventKey || STATE.solvent;
+
+  const concStep = Math.max(0.5, (concHi - concLo) / 7);
+  const presStep = Math.max(0.25, (presHi - presLo) / 7);
+
+  const btn = document.getElementById('hmap-btn');
+  btn.innerHTML = '<span class="spin"></span>Computing heatmap…';
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/predict_grid', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        eta: window.CAL_ETA || STATE.eta,
+        solvent_st: window.CAL_ST || STATE.ST,
+        solvent_bp: window.CAL_BP || STATE.BP,
+        cstar: window.CAL_CSTAR || STATE.cstar,
+        feed_rate: feed,
+        working_distance: wd,
+        conc_range: [concLo, concHi, concStep],
+        pressure_range: [presLo, presHi, presStep],
+        model_name: selModel,
+        user_data: window.CAL_API_ROWS || null,
+      })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || d.error || r.statusText);
+    drawHeatmap(d, target);
+  } catch(e) {
+    document.getElementById('hmap-out').innerHTML =
+      '<div class="notice n-err">Heatmap error: ' + e.message + '</div>';
+  } finally {
+    btn.innerHTML = 'Generate Heatmap';
+    btn.disabled = false;
+  }
+}
+
+function drawHeatmap(d, target) {
+  const cs = d.concentrations, ps = d.pressures, g = d.grid;
+  const all = []; g.forEach(r => r.forEach(v => all.push(v)));
+  const mn = Math.min(...all), mx = Math.max(...all), tol = target * 0.15;
+
+  let h = '<div style="font-size:12px;color:var(--text2);margin-bottom:8px">' +
+    d.model + ' (' + d.mode + ') | Target: <strong>' + target + ' nm</strong></div>';
+  if (d.n_outside > 0) {
+    h += '<div class="notice n-warn">' + d.n_outside + ' of ' + d.n_cells + ' conditions (shown in italics) lie outside the domain of the training data. Predictions there are extrapolations.</div>';
+  }
+  h += '<div class="hmap-wrap"><table class="hmap-table"><thead><tr><th>Conc↓ / Press→</th>';
+  ps.forEach(p => h += '<th>' + p + ' bar</th>');
+  h += '</tr></thead><tbody>';
+
+  const suggestions = [];
+  cs.forEach((c, ci) => {
+    h += '<tr><th>' + c + ' wt%</th>';
+    ps.forEach((p, pi) => {
+      const v = g[ci][pi];
+      const t = (v - mn) / (mx - mn || 1);
+      const bg = heatColor(t);
+      const tc = t > 0.65 ? '#fff' : '#1a1a1a';
+      const hit = Math.abs(v - target) <= tol;
+      const outside = d.inside && !d.inside[ci][pi];
+      h += '<td style="background:' + bg + ';color:' + tc + (outside ? ';font-style:italic;opacity:.75' : '') +
+           ';border:' + (hit ? '2px solid var(--green)' : '1px solid rgba(0,0,0,.06)') +
+           '" title="' + c + '%, ' + p + ' bar = ' + v + ' nm">' + v + '</td>';
+      if (hit) suggestions.push({c, p, v, e: Math.abs(v - target)});
+    });
+    h += '</tr>';
+  });
+  h += '</tbody></table></div>';
+
+  // Color legend
+  h += '<div style="display:flex;align-items:center;gap:6px;margin-top:8px;justify-content:center">' +
+    '<span style="font-size:10px;color:var(--text4)">' + Math.round(mn) + '</span>' +
+    '<div style="width:160px;height:6px;border-radius:3px;background:linear-gradient(90deg,' +
+    heatColor(0) + ',' + heatColor(0.5) + ',' + heatColor(1) + ')"></div>' +
+    '<span style="font-size:10px;color:var(--text4)">' + Math.round(mx) + ' nm</span>' +
+    '<span style="font-size:10px;color:var(--green);margin-left:6px">■ ±15%</span></div>';
+
+  document.getElementById('hmap-out').innerHTML = h;
+
+  // Recommendations
+  if (suggestions.length) {
+    suggestions.sort((a, b) => a.e - b.e);
+    document.getElementById('rec-box').classList.remove('hidden');
+    let sh = '<table class="tbl"><thead><tr><th>Concentration</th><th>Pressure</th><th>Predicted</th><th>Diff</th></tr></thead><tbody>';
+    suggestions.slice(0, 8).forEach(s => {
+      sh += '<tr><td>' + s.c + ' wt%</td><td>' + s.p + ' bar</td><td>' + s.v + ' nm</td>' +
+            '<td style="color:var(--green)">' + Math.round(s.e / target * 100) + '%</td></tr>';
+    });
+    sh += '</tbody></table>';
+    document.getElementById('rec-out').innerHTML = sh;
+  } else {
+    document.getElementById('rec-box').classList.remove('hidden');
+    document.getElementById('rec-out').innerHTML =
+      '<div class="notice n-warn">No conditions within ±15%. Adjust range or target.</div>';
+  }
+}
+
+function heatColor(t) {
+  // Blue (small) → white (mid) → brick red (large)
+  if (t < 0.5) {
+    const f = t * 2;
+    const r = Math.round(59  + (255-59)  * f);
+    const g = Math.round(110 + (255-110) * f);
+    const b = Math.round(143 + (255-143) * f);
+    return `rgb(${r},${g},${b})`;
+  } else {
+    const f = (t - 0.5) * 2;
+    const r = Math.round(255 + (168-255) * f);
+    const g = Math.round(255 + (74-255)  * f);
+    const b = Math.round(255 + (74-255)  * f);
+    return `rgb(${r},${g},${b})`;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

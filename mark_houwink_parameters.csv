@@ -1,0 +1,30 @@
+Polymer,K,a,Solvent_ref,Source
+PLA,0.000545,0.73,chloroform_25C,Dorgan2005
+PLLA,0.000545,0.73,chloroform_25C,Dorgan2005
+PDLLA,0.000221,0.77,chloroform_25C,Polymer_Handbook
+PBS,0.000398,0.74,chloroform_30C,Polymer_Handbook
+PCL,0.0001395,0.786,chloroform_25C,Polymer_Handbook
+PMMA,4.85e-05,0.8,chloroform_25C,Polymer_Handbook
+PS,7.1e-05,0.74,chloroform_25C,Polymer_Handbook
+PEO,0.000125,0.78,water_25C,Polymer_Handbook
+PVP,0.00014,0.7,water_25C,Polymer_Handbook
+PVA,0.000651,0.628,water_25C,Polymer_Handbook
+PVDF,0.0002,0.675,DMF_25C,Polymer_Handbook
+PAN,0.000243,0.75,DMF_25C,Polymer_Handbook
+PSf,0.000227,0.574,DMF_25C,Kim1987
+PA6,0.000226,0.82,formic_acid_25C,Polymer_Handbook
+PA66,0.000353,0.786,formic_acid_25C,Polymer_Handbook
+PC,0.000305,0.76,chloroform_25C,Polymer_Handbook
+CA,0.000137,0.72,acetone_25C,Polymer_Handbook
+PHBV,0.000118,0.79,chloroform_30C,Polymer_Handbook
+PBAT,0.000244,0.69,chloroform_25C,Weng2013
+PVB,0.0002,0.65,ethanol_25C,approx_PVB_lit
+PU,0.000117,0.72,DMF_25C,Polymer_Handbook
+TPU,0.000117,0.72,DMF_25C,same_as_PU
+THV,0.0002,0.65,acetone_25C,approx_fluoropolymer
+Gelatin,1.66e-05,0.885,water_35C,Pouradier1950
+Gelatin (FSG),1.66e-05,0.885,water_35C,Pouradier1950
+Gelatin (HMWFG),1.66e-05,0.885,water_35C,Pouradier1950
+Zein,5e-05,0.667,ethanol_25C,Selling2003_approx
+RSF,0.000105,0.7,water_25C,approx_silk_fibroin
+UHMWPE,6.2e-05,0.7,decalin_135C,Polymer_Handbook
